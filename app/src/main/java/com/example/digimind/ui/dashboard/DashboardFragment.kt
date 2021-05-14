@@ -15,9 +15,14 @@ import com.example.digimind.ui.home.HomeFragment
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.FirebaseAuth
 
+//En general La clase de DashboardFragment sirve para guardar las actividades de cada usuario individualmente.
 class DashboardFragment : Fragment() {
 
+    private lateinit var storage: FirebaseFirestore
+    private lateinit var usuario : FirebaseAuth
     private lateinit var dashboardViewModel: DashboardViewModel
 
     override fun onCreateView(
@@ -28,6 +33,11 @@ class DashboardFragment : Fragment() {
         dashboardViewModel =
                 ViewModelProviders.of(this).get(DashboardViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_dashboard, container, false)
+
+        //conexion a la BD
+        storage = FirebaseFirestore.getInstance()
+        //Conexión al usuario
+        usuario= FirebaseAuth.getInstance()
 
         val btn_time: Button = root.findViewById(R.id.btn_time)
 
@@ -57,12 +67,36 @@ class DashboardFragment : Fragment() {
 
         btn_save.setOnClickListener{
 
+            //En general en Dashboard se guarda
             var titulo = et_titulo.text.toString()
             var time = btn_time.text.toString()
 
             var days = ArrayList<String>()
+            val actividad = hashMapOf(
+                "actividad" to et_titulo.text.toString(),
+                "email" to usuario.currentUser.email.toString(),
+                "do" to checkSunday.isChecked,
+                "lu" to checkMonday.isChecked,
+                "ma" to checkTuesday.isChecked,
+                "mi" to checkWednesday.isChecked,
+                "ju" to checkThursday.isChecked,
+                "vi" to checkFriday.isChecked,
+                "sa" to checkSaturday.isChecked,
+                "do" to checkSunday.isChecked,
+                "tiempo" to btn_time.text.toString())
 
-            if(checkMonday.isChecked)
+            Toast.makeText(root.context, actividad.toString(), Toast.LENGTH_SHORT).show()
+            //conexión al catalogo de firebase
+            storage.collection("actividades")
+                .add(actividad.toString())
+                .addOnSuccessListener {
+                    Toast.makeText(root.context, "Task Agregada", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener {
+                    Toast.makeText(root.context, "Error: intente de nuevo", Toast.LENGTH_SHORT).show()
+                }
+
+            /*if(checkMonday.isChecked)
                 days.add("Monday")
             if(checkTuesday.isChecked)
                 days.add("Tuesday")
@@ -81,7 +115,7 @@ class DashboardFragment : Fragment() {
 
             HomeFragment.tasks.add(task)
 
-            Toast.makeText(root.context, "new task added", Toast.LENGTH_SHORT).show()
+            Toast.makeText(root.context, "new task added", Toast.LENGTH_SHORT).show()*/
         }
 
 
